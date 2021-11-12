@@ -4,7 +4,7 @@ There are a lot of recording websites.
 Some are very simple, only have record function => and download after done. If you are recording and you got an incorrect pronunciation. => R.I.P. you have to record again.
 
 Some are very complex, the user needs to record first, then download => upload to edit.  
-**I just want a website where people can record and edit right where they have incorrect pronounce.**  
+**I just want a website where people can record and edit right where they have incorrect pronunciation.**  
 So that why this project was born.
 
 ## What is funny??
