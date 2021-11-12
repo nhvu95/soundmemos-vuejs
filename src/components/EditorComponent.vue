@@ -1,0 +1,328 @@
+<template>
+  <div class="editor-wrapper">
+    <h2 class="title">{{ title }}</h2>
+    <div @click="updateCurrentTime">
+      <div id="waveform-timeline"></div>
+      <div id="waveform"></div>
+      <!-- <div id="waveform-recorder"></div> -->
+      <div id="wave-minimap" ref="waveMinimap"></div>
+    </div>
+    <div class="info">
+      <div class="time">
+        <h4>
+          <span style="position: relative"
+            ><q-btn
+              @click="onClickPlay"
+              unelevated
+              :icon="playButtonIcn"
+              :disable="
+                recordIcon === 'pause' ||
+                (recordIcon === 'mic' && audioPlaySet.size == 0)
+              "
+              padding="none"
+              round
+              size="xs"
+              style="
+                font-size: 1.75rem;
+                padding: 0px;
+                min-width: 0px;
+                min-height: 0px;
+                position: absolute;
+                margin: 0px;
+                left: -55px;
+                top: -4px;
+              "
+          /></span>
+          {{ currentTime }}
+        </h4>
+      </div>
+      <div class="file-name">
+        <q-input
+          standout
+          v-model="currentAudioName"
+          :dense="true"
+          style="width: 400px; margin: auto; font-size: 1.75rem"
+        />
+      </div>
+      <div class="date-name"><p>2021/10/24</p></div>
+    </div>
+    <div class="controls">
+      <q-btn
+        outline
+        no-caps
+        class="clear-btn"
+        label="Clear"
+        @click="onClickClear"
+      />
+      <q-btn
+        class="record-btn"
+        size="lg"
+        unelevated
+        round
+        :icon="recordIcon"
+        @click="onClickRecord"
+      />
+      <q-btn
+        outline
+        no-caps
+        class="done-btn"
+        label="Done"
+        @click="onClickDone"
+      />
+    </div>
+    <audio ref="player" :src="audioSrc" controls style="display: none"></audio>
+  </div>
+</template>
+
+<script lang="ts">
+import { Vue, prop } from 'vue-class-component';
+import { ISound, IMeta } from './models';
+
+import { emitter } from '../boot/event-bus';
+
+/* eslint-disable */
+import { audioBufferSlice } from 'audiobuffer-slice';
+// import { Howl } from 'howler';
+// import * as streamSaver from 'streamsaver';
+import { getDBInstance, addSoundToDB } from './indexed-db';
+/* eslint-disable */
+declare const WaveSurfer: any;
+
+class Props {
+  readonly title!: string;
+  readonly todos = prop<ISound[]>({ default: () => [] });
+  readonly meta!: IMeta;
+  readonly active!: boolean;
+}
+
+export default class EditorComponent extends Vue.with(Props) {
+  clickCount = 0;
+  recordIcon: 'pause' | 'mic' | 'play_arrow' = 'mic';
+  playButtonIcn: 'play_arrow' | 'stop' = 'play_arrow';
+  currentTime = '00:06.6';
+  endOfRecord = 0;
+  wavesurfer: any;
+  audioBuffer?: AudioBuffer;
+  audioPlaySet = new Set();
+  currentAudioName = 'New Recording...';
+  // mediaRecorder?: MediaRecorder;
+  audioSrc = 'aaa';
+
+  mounted() {
+    getDBInstance();
+
+    this.wavesurfer = WaveSurfer.create({
+      container: '#waveform',
+      waveColor: 'white',
+      progressColor: '#46f0d4',
+      barRadius: 0,
+      barWidth: 1,
+      barGap: 3,
+      height: 200,
+      cursorWidth: 2,
+      cursorColor: '#46f0d4',
+      responsive: true,
+      scrollParent: true,
+      appendMode: true,
+      fillParent: true,
+      autoCenter: true,
+      barMinHeight: 1,
+      minPxPerSec: 30,
+      plugins: [
+        WaveSurfer.timeline.create({
+          container: '#waveform-timeline',
+          fontSize: '14',
+          fillParent: true,
+          scrollParent: true,
+
+          // notchPercentHeight: 5,
+          formatTimeCallback: (seconds: number) => {
+            if (seconds / 60 >= 1) {
+              // calculate minutes and seconds from seconds count
+              let minutes = '00' + parseInt(`${seconds / 60}`, 10);
+              seconds = parseInt(`${seconds % 60}`, 10);
+
+              let lasSeconds = `00${seconds}`.slice(-2);
+              return ''.concat(minutes.slice(-2), ':').concat(lasSeconds);
+            }
+            let sec = '00' + (Math.round(seconds * 1000) / 1000).toString();
+            return `00:${sec.slice(-2)}`;
+          },
+        }),
+        WaveSurfer.minimap.create({
+          container: '#wave-minimap',
+          waveColor: '#777',
+          progressColor: 'white',
+          height: 50,
+        }),
+        WaveSurfer.microphone.create({
+          // container: '#wave-minimap',
+        }),
+      ],
+    });
+
+    /* eslint-disable */
+    this.wavesurfer.on('ready', function () {
+      // self.wavesurfer.play();
+    });
+
+    const self = this;
+    /* eslint-disable */
+    this.wavesurfer.on('audioprocess', function () {
+      self.currentTime = self.formatTime(self.wavesurfer.getCurrentTime());
+    });
+
+    this.wavesurfer.on('seek', function () {
+      self.currentTime = self.formatTime(self.wavesurfer.getCurrentTime());
+    });
+
+    this.wavesurfer.microphone.on(
+      'deviceReady',
+      function (stream: MediaStream) {
+        console.log('Device ready!', stream);
+      }
+    );
+
+    emitter.on('TAB_CHANGE', (toogle: boolean) => {
+      console.log('TAB_CHANGE');
+      // self.audioBuffer = self.wavesurfer.backend.buffer;
+      // self.wavesurfer.drawer.clearWave();
+      // this.wavesurfer.microphone.togglePlay();
+
+      // self.wavesurfer.appendDecodedBuffer(self.audioBuffer);
+      setTimeout(() => {
+        self.wavesurfer.minimap._onZoom(0);
+        setTimeout(() => {
+          self.wavesurfer.zoom(0);
+        }, 100);
+      }, 100);
+    });
+  }
+
+  download(blob: Blob) {
+    // var blob = new Blob([wavBytes], {
+    //   type: 'audio/wav',
+    // });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    document.body.appendChild(a);
+    a.setAttribute('style', 'display: none');
+    a.href = url;
+    a.download = 'test.wav';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  formatTime(seconds: number) {
+    let secondsFix = seconds.toFixed(1);
+    if (seconds / 60 >= 1) {
+      // calculate minutes and seconds from seconds count
+      let minutes = parseInt(`${seconds / 60}`, 10);
+      let replcStr = +secondsFix - minutes * 60;
+      let lasSeconds = `0${replcStr.toFixed(1)}`.slice(-4);
+      return '00'.concat(minutes.toString()).slice(-2).concat(':', lasSeconds);
+    }
+    let sec = '0' + secondsFix;
+    return `00:${sec.slice(-4)}`;
+  }
+
+  updateCurrentTime() {
+    this.currentTime = this.formatTime(this.wavesurfer.getCurrentTime());
+  }
+  onClickClear() {
+    this.wavesurfer.microphone.stop();
+    this.wavesurfer.stop();
+    this.wavesurfer.destroy();
+    this.wavesurfer.init();
+  }
+  onClickPlay() {
+    console.log('onClickPlay');
+    if (this.playButtonIcn === 'play_arrow') {
+      this.playButtonIcn = 'stop';
+      this.wavesurfer.play();
+    } else {
+      this.playButtonIcn = 'play_arrow';
+      this.wavesurfer.stop();
+      this.wavesurfer.seekAndCenter(1);
+    }
+  }
+
+  onClickRecord() {
+    if (this.recordIcon === 'mic') {
+      this.wavesurfer.microphone.togglePlay();
+      if (!this.audioPlaySet.has(this.currentAudioName)) {
+        this.audioPlaySet.add(this.currentAudioName);
+      }
+      this.recordIcon = 'pause';
+      // compare with last time run
+      let currentCursor = this.wavesurfer.getCurrentTime();
+      if (currentCursor !== this.endOfRecord) {
+        this.handleSlice(currentCursor);
+      }
+    } else {
+      //pause
+      this.wavesurfer.microphone.togglePlay();
+      this.recordIcon = 'mic';
+      this.endOfRecord = this.wavesurfer.getCurrentTime();
+    }
+  }
+
+  handleSlice(endTime) {
+    let newBuffer;
+    audioBufferSlice(
+      this.wavesurfer.backend.buffer,
+      0,
+      endTime * 1000,
+      function (error, slicedAudioBuffer) {
+        if (error) {
+          console.error(error);
+        } else {
+          newBuffer = slicedAudioBuffer;
+        }
+      }
+    );
+    this.wavesurfer.backend.buffer = newBuffer;
+  }
+
+  onClickDone() {
+    const self = this;
+    this.wavesurfer.microphone.stop();
+    this.recordIcon = 'mic';
+    // debugger
+    this.audioBuffer = this.wavesurfer.backend.buffer;
+    // Float32Array samples
+    if (this.audioBuffer) {
+      var worker = new Worker('libs/recorderWorker.js');
+
+      // initialize the new worker
+      worker.postMessage({
+        command: 'init',
+        config: { sampleRate: 48000, numChannels: 1 },
+      });
+
+      // callback for `exportWAV`
+      worker.onmessage = function (e) {
+        var blob = e.data;
+        addSoundToDB({ id: 'hello', name: 'name', time: 15, blob, date: +new Date()});
+        // self.download(blob);
+        // this is would be your WAV blob
+      };
+
+      // send the channel data from our buffer to the worker
+      worker.postMessage({
+        command: 'record',
+        buffer: [
+          this.audioBuffer.getChannelData(0),
+          // this.audioBuffer.getChannelData(0),
+        ],
+      });
+
+      // ask the worker for a WAV
+      worker.postMessage({
+        command: 'exportWAV',
+        type: 'audio/wav',
+      });
+    }
+  }
+}
+</script>

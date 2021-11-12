@@ -1,0 +1,241 @@
+// app global css in SCSS form
+.q-header {
+  background-color: rgba(0, 107, 141, 0);
+}
+
+body {
+  background-image: radial-gradient(
+    circle farthest-corner at 10% 20%,
+    rgba(0, 107, 141, 1) 0%,
+    rgba(0, 69, 91, 1) 90%
+  );
+}
+
+.editor-wrapper {
+  width: 100%;
+  height: 100%;
+  padding: 50px 5px;
+  align-self: start;
+  color: #fff;
+  .title {
+    color: white;
+    text-align: center;
+  }
+  .info {
+    text-align: center;
+    margin-bottom: 30px;
+    .time h4 {
+      margin: 20px;
+      cursor: default;
+    }
+    .file-name label {
+      margin: 5px;
+      input {
+        text-align: center;
+        color: #fff;
+      }
+    }
+    .file-name label.q-field--focused {
+      // background-color: #fff;
+      background-color: rgba($color: #000000, $alpha: 0);
+      input {
+        color: rgba(0, 107, 141, 1);
+      }
+      > div > div {
+        background-color: #fff;
+      }
+    }
+  }
+  .sound-describe {
+    overflow-x: scroll;
+    display: flex;
+    height: calc(100vh - 540px);
+    .runtime {
+      display: flex;
+      cursor: pointer;
+      div {
+        width: 100px;
+        text-align: center;
+      }
+      div::after {
+        content: '';
+        border-radius: 50%;
+        border: 1px solid white;
+        height: 5px;
+        width: 5px;
+        display: block;
+        margin-left: calc(50% - 2.5px);
+      }
+    }
+  }
+  #waveform wave::-webkit-scrollbar,
+  #wave-minimap wave::-webkit-scrollbar {
+    display: none;
+  }
+  #waveform > wave {
+    border-left: 2px solid rgb(70, 240, 212);
+  }
+  #wave-minimap > wave {
+    border-left: 2px solid white;
+  }
+  #wave-minimap wave {
+    max-width: 100%;
+  }
+
+  #waveform > wave::before,
+  #wave-minimap > wave::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    background-color: rgb(70, 240, 212);
+    position: absolute;
+    left: -5px;
+    display: block;
+    border-radius: 10px;
+  }
+  #wave-minimap > wave::before {
+    background-color: white;
+  }
+
+  #waveform > wave::after,
+  #wave-minimap > wave::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    background-color: rgb(70, 240, 212);
+    position: absolute;
+    left: -5px;
+    display: block;
+    border-radius: 10px;
+    bottom: 0px;
+  }
+  #wave-minimap > wave::after {
+    background-color: white;
+  }
+
+  #waveform wave wave::before,
+  #wave-minimap wave wave::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    background-color: rgb(70, 240, 212);
+    position: absolute;
+    right: -5px;
+    display: block;
+    border-radius: 10px;
+  }
+  #wave-minimap wave wave::before {
+    background-color: white;
+  }
+
+  #waveform wave wave::after,
+  #wave-minimap wave wave::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    background-color: rgb(70, 240, 212);
+    position: absolute;
+    right: -5px;
+    display: block;
+    border-radius: 10px;
+    bottom: 0px;
+  }
+  #wave-minimap wave wave::after {
+    background-color: white;
+  }
+  #wave-minimap wave wave {
+    border-color: white !important;
+  }
+
+  #wave-minimap {
+    margin-top: 40px;
+    > wave {
+      overflow-x: hidden;
+    }
+  }
+
+  #waveform-timeline {
+    margin-bottom: 20px;
+    min-height: 35px;
+  }
+
+  .controls {
+    text-align: center;
+    .record-btn {
+      background-color: #ec685e;
+      outline: 8px solid rgba($color: #fff, $alpha: 0.1) !important;
+      // display: inline-block;
+    }
+    .done-btn {
+      position: relative;
+      right: -80px;
+      display: inline-block;
+      line-height: 28px;
+    }
+    .clear-btn {
+      position: relative;
+      display: inline-block;
+      line-height: 28px;
+      left: -80px;
+    }
+  }
+}
+
+@media only screen and (max-width: 600px) {
+  .editor-wrapper {
+    padding: 20px 5px;
+    .title {
+      margin: 0px;
+      font-size: 30px;
+    }
+  }
+}
+
+@media only screen and (max-width: 400px) {
+  .editor-wrapper {
+    .title {
+      display: none;
+    }
+  }
+}
+
+
+.sound-item .q-icon:hover {
+  background-color: white;
+  border-radius: 20px;
+  outline: solid white 5px;
+}
+
+.q-item__label--header {
+  padding: 0px;
+  padding-left: 20px;
+  height: 50px;
+}
+
+#all-your-record-header {
+  display: flex;
+  align-items: center;
+  span {
+    cursor: default;
+  }
+  button {
+    // font-size: 30px;
+    margin-left: auto;
+    height: 100%;
+  }
+  button:hover {
+    color: #ec685e;
+  }
+}
+
+#all-your-record-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  #delete-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: auto;
+    margin-bottom: 30px;
+  }
+}
