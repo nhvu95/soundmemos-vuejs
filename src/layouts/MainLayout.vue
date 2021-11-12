@@ -72,9 +72,9 @@ export default class MainLayout extends Vue {
   version = VERSION;
   listSound: ISoundItem[] = [] as ISoundItem[];
   mounted() {
-    void getSoundList().then((list) => {
-      this.listSound = list as ISoundItem[];
-      console.log(this.listSound[0]);
+    this.updateSoundList();
+    void emitter.on('LIST_CHANGE', () => {
+      void this.updateSoundList();
     });
   }
   toggleLeftDrawer() {
@@ -93,6 +93,12 @@ export default class MainLayout extends Vue {
   }
   downloadSound(id: string) {
     console.log('downloadSound', id);
+  }
+  updateSoundList() {
+    void getSoundList().then((list) => {
+      this.listSound = list as ISoundItem[];
+      console.log(this.listSound[0]);
+    });
   }
   downloadAll() {
     console.log('downloadAll');

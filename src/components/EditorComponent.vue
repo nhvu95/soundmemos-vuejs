@@ -39,7 +39,7 @@
       <div class="file-name">
         <q-input
           standout
-          v-model="currentAudioName"
+          v-model="onOpeningFileName"
           :dense="true"
           style="width: 400px; margin: auto; font-size: 1.75rem"
         />
@@ -77,15 +77,12 @@
 <script lang="ts">
 import { Vue, prop } from 'vue-class-component';
 import { ISound, IMeta } from './models';
-
 import { emitter } from '../boot/event-bus';
-
-/* eslint-disable */
 import { audioBufferSlice } from 'audiobuffer-slice';
-// import { Howl } from 'howler';
-// import * as streamSaver from 'streamsaver';
 import { getDBInstance, addSoundToDB } from './indexed-db';
 /* eslint-disable */
+import { v1 as uuidv1 } from 'uuid';
+
 declare const WaveSurfer: any;
 
 class Props {
@@ -104,7 +101,8 @@ export default class EditorComponent extends Vue.with(Props) {
   wavesurfer: any;
   audioBuffer?: AudioBuffer;
   audioPlaySet = new Set();
-  currentAudioName = 'New Recording...';
+  onOpeningFileName = 'New Recording...';
+  onOpeningId = uuidv1();
   // mediaRecorder?: MediaRecorder;
   audioSrc = 'aaa';
 
@@ -248,10 +246,13 @@ export default class EditorComponent extends Vue.with(Props) {
   }
 
   onClickRecord() {
+    if (!this.onOpeningId || this.onOpeningId.trim() === '') {
+      this.onOpeningId = uuidv1();
+    }
     if (this.recordIcon === 'mic') {
       this.wavesurfer.microphone.togglePlay();
-      if (!this.audioPlaySet.has(this.currentAudioName)) {
-        this.audioPlaySet.add(this.currentAudioName);
+      if (!this.audioPlaySet.has(this.onOpeningFileName)) {
+        this.audioPlaySet.add(this.onOpeningFileName);
       }
       this.recordIcon = 'pause';
       // compare with last time run
@@ -303,7 +304,15 @@ export default class EditorComponent extends Vue.with(Props) {
       // callback for `exportWAV`
       worker.onmessage = function (e) {
         var blob = e.data;
-        addSoundToDB({ id: 'hello', name: 'name', time: 15, blob, date: +new Date()});
+        addSoundToDB({
+          id: self.onOpeningId,
+          name: self.onOpeningFileName,
+          time: 15,
+          blob,
+          date: +new Date(),
+        });
+        self.onOpeningId = '';
+        void emitter.emit('LIST_CHANGE');
         // self.download(blob);
         // this is would be your WAV blob
       };

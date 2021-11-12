@@ -21,7 +21,9 @@
     <q-item-section>
       <q-item-label>{{ name }}</q-item-label>
       <q-item-label caption style="height: 1rem">
-        <div style="display: inline-block; width: 50%">{{ date }}</div>
+        <div style="display: inline-block; width: 50%">
+          {{ timestampToDate(date) }}
+        </div>
         <div style="display: inline-block; width: 50%; text-align: right">
           {{ time }}
         </div>
@@ -37,7 +39,7 @@ class Props {
   readonly id = prop({ default: '#' });
   readonly name = prop({ default: 'sound_memos' });
   readonly selected = prop({ default: false });
-  readonly date = prop({ default: '2021/11/10' });
+  readonly date = prop({ default: 0 });
   readonly time = prop({ default: '#' });
 }
 
@@ -51,6 +53,9 @@ export default class ListSoundItem extends Vue.with(Props) {
     this.$emit('downloadSound', this.id);
     // $event.stopPropagation();
     $event.stopImmediatePropagation();
+  }
+  timestampToDate(time: number) {
+    return new Date(time).toISOString().substring(0, 10);
   }
 }
 </script>
