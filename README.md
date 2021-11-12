@@ -7,6 +7,10 @@ Some are very complex, the user needs to record first, then download => upload t
 **I just want a website where people can record and edit right where they have incorrect pronounce.**  
 So that why this project was born.
 
+## What is funny??
+- I customized the library [wavesurfer.js](https://wavesurfer-js.org/) to handle stream data, and draw the sound wave by my way :D. Wavesuffer is not offical support this feature. So if you want to do something like this, you can refer my code.  
+- I refer the code of [recorder.js](https://github.com/mattdiamond/Recorderjs) to handle array buffer and conver array buffer to blob. Special thanks [Matt Diamond
+](https://github.com/mattdiamond)
 ## Install the dependencies
 ```bash
 npm install
