@@ -13,7 +13,11 @@
 
         <q-toolbar-title> Sound Memos </q-toolbar-title>
 
-        <div>v{{ version }}</div>
+        <a
+          target="_blank"
+          href="https://github.com/HieuNguyenVu/soundmemos-vuejs"
+          >v.{{ version }}</a
+        >
       </q-toolbar>
     </q-header>
 
@@ -38,8 +42,21 @@
             @downloadSound="downloadSound"
           />
         </div>
-        <q-item-label footer id="delete-wrapper">
-          <q-btn color="black" icon="delete" label="Delete" unelevated />
+        <q-item-label footer id="footer-wrapper">
+          <q-btn
+            color="black"
+            icon="delete"
+            label="Delete"
+            unelevated
+            @click="deleteASound"
+          />
+          <q-btn
+            color="red"
+            icon="add"
+            label="Add New"
+            unelevated
+            @click="createNewRecord"
+          />
         </q-item-label>
       </q-list>
     </q-drawer>
@@ -48,15 +65,44 @@
       <router-view />
     </q-page-container>
   </q-layout>
+  <q-dialog v-model="confirm" persistent>
+    <q-card>
+      <q-card-section class="row items-center">
+        <q-avatar icon="strikethrough_s" color="primary" text-color="white" />
+        <span class="q-ml-sm">Turn off your ads block please...</span>
+      </q-card-section>
+
+      <q-card-actions align="right">
+        <q-btn
+          flat
+          label="Ok"
+          color="primary"
+          v-close-popup
+          @click="checkAdsBlock"
+        />
+        <q-btn
+          flat
+          label="Yes"
+          color="primary"
+          v-close-popup
+          @click="checkAdsBlock"
+        />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script lang="ts">
 import ListSoundItem from 'src/components/ListSoundItem.vue';
 import { ISound } from 'src/components/models';
+import JSZip from 'jszip';
+import FileSaver from 'file-saver';
 
 import { Vue, Options } from 'vue-class-component';
 import { emitter } from '../boot/event-bus';
-import { getSoundList } from '../components/indexed-db';
+import { getSound, getSoundList, deleteSound } from '../components/indexed-db';
+import { detectAnyAdblocker } from 'just-detect-adblock';
+/* eslint-disable */
 
 const VERSION = +(process.env.VERSION ? process.env.VERSION : '');
 
@@ -71,29 +117,48 @@ export default class MainLayout extends Vue {
   leftDrawerOpen = false;
   version = VERSION;
   listSound: ISoundItem[] = [] as ISoundItem[];
+  selectedId = '';
+  confirm = false;
+
   mounted() {
     this.updateSoundList();
     void emitter.on('LIST_CHANGE', () => {
       void this.updateSoundList();
     });
+
+    detectAnyAdblocker().then((detected) => {
+      if (detected) {
+        this.confirm = true;
+      }
+    });
   }
+  checkAdsBlock() {
+    window.location.reload();
+  }
+
   toggleLeftDrawer() {
     this.leftDrawerOpen = !this.leftDrawerOpen;
-    /* eslint-disable */
     void emitter.emit('TAB_CHANGE', this.leftDrawerOpen);
   }
 
   selectedSoundMemos(id: string) {
     this.listSound.forEach((sound) => {
-      if (sound.id === id) sound.selected = true;
-      else {
+      if (sound.id === id) {
+        sound.selected = true;
+        this.selectedId = id;
+        void emitter.emit('SELECT_SOUND', sound.id);
+      } else {
         sound.selected = false;
       }
     });
   }
   downloadSound(id: string) {
     console.log('downloadSound', id);
+    void getSound(id).then((sound) => {
+      FileSaver.saveAs(sound.blob, `${sound.name}.wav`);
+    });
   }
+
   updateSoundList() {
     void getSoundList().then((list) => {
       this.listSound = list as ISoundItem[];
@@ -102,6 +167,26 @@ export default class MainLayout extends Vue {
   }
   downloadAll() {
     console.log('downloadAll');
+    void getSoundList().then((list) => {
+      const zip = new JSZip();
+      list.forEach((sound, index) => {
+        zip.file(`${index}.${sound.name}.wav`, sound.blob);
+      });
+      zip.generateAsync({ type: 'blob' }).then(function (content) {
+        FileSaver.saveAs(content, 'download.zip');
+      });
+    });
+  }
+  deleteASound() {
+    deleteSound(this.selectedId).then(() => {
+      this.updateSoundList();
+    });
+  }
+  createNewRecord() {
+    void emitter.emit('CREATE_NEW', true);
+    this.listSound.forEach((sound) => {
+      sound.selected = false;
+    });
   }
 }
 </script>

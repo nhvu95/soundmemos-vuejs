@@ -1,7 +1,6 @@
 <template>
   <q-page class="row items-center justify-evenly  main-component">
     <editor-component
-      title="RECORD"
       active
     ></editor-component>
   </q-page>

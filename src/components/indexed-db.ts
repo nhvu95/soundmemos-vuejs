@@ -47,4 +47,8 @@ async function getSound(soundId: string) {
   return (await dbInstance).get('sound-db', soundId);
 }
 
-export { getDBInstance, addSoundToDB, getSound, getSoundList };
+async function deleteSound(soundId: string) {
+  return (await dbInstance).delete('sound-db', soundId);
+}
+
+export { getDBInstance, addSoundToDB, getSound, getSoundList, deleteSound };

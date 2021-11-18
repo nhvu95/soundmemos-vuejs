@@ -53,6 +53,7 @@
         class="clear-btn"
         label="Clear"
         @click="onClickClear"
+        :disable="recordIcon === 'pause' || title === 'PLAYING'"
       />
       <q-btn
         class="record-btn"
@@ -68,6 +69,7 @@
         class="done-btn"
         label="Done"
         @click="onClickDone"
+        :disable="recordIcon === 'pause'"
       />
     </div>
     <audio ref="player" :src="audioSrc" controls style="display: none"></audio>
@@ -79,14 +81,13 @@ import { Vue, prop } from 'vue-class-component';
 import { ISound, IMeta } from './models';
 import { emitter } from '../boot/event-bus';
 import { audioBufferSlice } from 'audiobuffer-slice';
-import { getDBInstance, addSoundToDB } from './indexed-db';
+import { getDBInstance, addSoundToDB, getSound } from './indexed-db';
 /* eslint-disable */
 import { v1 as uuidv1 } from 'uuid';
 
 declare const WaveSurfer: any;
 
 class Props {
-  readonly title!: string;
   readonly todos = prop<ISound[]>({ default: () => [] });
   readonly meta!: IMeta;
   readonly active!: boolean;
@@ -96,7 +97,7 @@ export default class EditorComponent extends Vue.with(Props) {
   clickCount = 0;
   recordIcon: 'pause' | 'mic' | 'play_arrow' = 'mic';
   playButtonIcn: 'play_arrow' | 'stop' = 'play_arrow';
-  currentTime = '00:06.6';
+  currentTime = '00:00.0';
   endOfRecord = 0;
   wavesurfer: any;
   audioBuffer?: AudioBuffer;
@@ -105,6 +106,7 @@ export default class EditorComponent extends Vue.with(Props) {
   onOpeningId = uuidv1();
   // mediaRecorder?: MediaRecorder;
   audioSrc = 'aaa';
+  title: 'PLAYING' | 'RECORD' = 'RECORD';
 
   mounted() {
     getDBInstance();
@@ -167,7 +169,12 @@ export default class EditorComponent extends Vue.with(Props) {
     const self = this;
     /* eslint-disable */
     this.wavesurfer.on('audioprocess', function () {
-      self.currentTime = self.formatTime(self.wavesurfer.getCurrentTime());
+      let currentCursor = self.wavesurfer.getCurrentTime();
+      self.currentTime = self.formatTime(currentCursor);
+      console.log(currentCursor, self.endOfRecord);
+      if (currentCursor + 0.1 >= self.endOfRecord) {
+        self.playButtonIcn = 'play_arrow';
+      }
     });
 
     this.wavesurfer.on('seek', function () {
@@ -182,12 +189,6 @@ export default class EditorComponent extends Vue.with(Props) {
     );
 
     emitter.on('TAB_CHANGE', (toogle: boolean) => {
-      console.log('TAB_CHANGE');
-      // self.audioBuffer = self.wavesurfer.backend.buffer;
-      // self.wavesurfer.drawer.clearWave();
-      // this.wavesurfer.microphone.togglePlay();
-
-      // self.wavesurfer.appendDecodedBuffer(self.audioBuffer);
       setTimeout(() => {
         self.wavesurfer.minimap._onZoom(0);
         setTimeout(() => {
@@ -195,20 +196,25 @@ export default class EditorComponent extends Vue.with(Props) {
         }, 100);
       }, 100);
     });
-  }
 
-  download(blob: Blob) {
-    // var blob = new Blob([wavBytes], {
-    //   type: 'audio/wav',
-    // });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    document.body.appendChild(a);
-    a.setAttribute('style', 'display: none');
-    a.href = url;
-    a.download = 'test.wav';
-    a.click();
-    window.URL.revokeObjectURL(url);
+    emitter.on('SELECT_SOUND', (id: string) => {
+      self.onClickClear();
+      this.title = 'PLAYING';
+      this.playButtonIcn = 'play_arrow';
+      getSound(id).then((sound) => {
+        console.log(sound);
+        self.endOfRecord = sound.time;
+        self.audioPlaySet.add(sound.id);
+        self.onOpeningFileName = sound.name;
+        self.wavesurfer.loadBlob(sound.blob);
+      });
+    });
+
+    emitter.on('CREATE_NEW', () => {
+      self.onClickClear();
+      self.title = 'RECORD';
+      self.onOpeningFileName = 'New Recording...';
+    });
   }
 
   formatTime(seconds: number) {
@@ -228,10 +234,11 @@ export default class EditorComponent extends Vue.with(Props) {
     this.currentTime = this.formatTime(this.wavesurfer.getCurrentTime());
   }
   onClickClear() {
-    this.wavesurfer.microphone.stop();
+    this.recordIcon === 'mic';
+    this.wavesurfer.minimap.empty();
+    // this.wavesurfer.microphone.create();
     this.wavesurfer.stop();
-    this.wavesurfer.destroy();
-    this.wavesurfer.init();
+    this.wavesurfer.empty();
   }
   onClickPlay() {
     console.log('onClickPlay');
@@ -246,6 +253,7 @@ export default class EditorComponent extends Vue.with(Props) {
   }
 
   onClickRecord() {
+    this.title = 'RECORD';
     if (!this.onOpeningId || this.onOpeningId.trim() === '') {
       this.onOpeningId = uuidv1();
     }
@@ -307,7 +315,7 @@ export default class EditorComponent extends Vue.with(Props) {
         addSoundToDB({
           id: self.onOpeningId,
           name: self.onOpeningFileName,
-          time: 15,
+          time: self.endOfRecord,
           blob,
           date: +new Date(),
         });

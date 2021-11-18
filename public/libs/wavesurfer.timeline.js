@@ -374,8 +374,8 @@
                                 renderPositions(function (i, curSeconds, curPixel) {
                                     if (i % primaryLabelInterval === 0) {
                                         // _this3.fillRect(curPixel, 0, 5, height1);
-                                        // _this3.fillArc(curPixel, height1 - 5, 1, height1, 2.5); // Outer circle
-                                        // _this3.fillText(formatTime(curSeconds, pixelsPerSecond), curPixel + _this3.params.labelPadding * _this3.pixelRatio - 22, height1 - fontSize);
+                                        _this3.fillArc(curPixel, height1 - 5, 1, height1, 2.5); // Outer circle
+                                        _this3.fillText(formatTime(curSeconds, pixelsPerSecond), curPixel + _this3.params.labelPadding * _this3.pixelRatio - 22, height1 - fontSize);
                                     }
                                 }); // render secondary labels
 
@@ -393,8 +393,9 @@
                                 this.setFillStyles(this.params.unlabeledNotchColor);
                                 renderPositions(function (i, curSeconds, curPixel) {
                                     if (i % secondaryLabelInterval !== 0 && i % primaryLabelInterval !== 0) {
-                                        // _this3.fillRect(curPixel, 0, 1, height2);
-                                        // _this3.fillArc(curPixel, height1 - 5, 1, height2, 2.5); // Outer circle
+                                        // // _this3.fillRect(curPixel, 0, 1, height2);
+                                        // _this3.fillArc(curPixel, height1 - 5, 1, height1, 2.5); // Outer circle
+                                        // _this3.fillText(formatTime(curSeconds, pixelsPerSecond), curPixel + _this3.params.labelPadding * _this3.pixelRatio - 22, height1 - fontSize);
                                     }
                                 });
                             }

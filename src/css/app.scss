@@ -199,7 +199,6 @@ body {
   }
 }
 
-
 .sound-item .q-icon:hover {
   background-color: white;
   border-radius: 20px;
@@ -211,7 +210,13 @@ body {
   padding-left: 20px;
   height: 50px;
 }
-
+.q-header {
+  a {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+  }
+}
 #all-your-record-header {
   display: flex;
   align-items: center;
@@ -232,10 +237,14 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
-  #delete-wrapper {
+  #footer-wrapper {
     display: flex;
     justify-content: center;
     margin-top: auto;
     margin-bottom: 30px;
+    button {
+      margin: 2px;
+      width: 130px;
+    }
   }
 }

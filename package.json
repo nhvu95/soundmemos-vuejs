@@ -1,8 +1,8 @@
 {
   "name": "record-app",
   "version": "0.0.1",
-  "description": "A Quasar Framework app",
-  "productName": "Quasar App",
+  "description": "Online recording website",
+  "productName": "Sound Memos",
   "author": "Hieu Nguyen Vu <nhvu.95@gmail.com>",
   "private": true,
   "scripts": {
@@ -17,7 +17,10 @@
     "axios": "^0.21.1",
     "core-js": "^3.6.5",
     "emittery": "^0.10.0",
+    "file-saver": "^2.0.5",
     "idb": "^6.1.5",
+    "jszip": "^3.7.1",
+    "just-detect-adblock": "^1.1.0",
     "quasar": "^2.0.0",
     "streamsaver": "^2.0.5",
     "uuid": "^8.3.2",
