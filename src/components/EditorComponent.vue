@@ -72,7 +72,7 @@
         :disable="recordIcon === 'pause'"
       />
     </div>
-    <audio ref="player" :src="audioSrc" controls style="display: none"></audio>
+    <audio ref="player" controls style="display: none"></audio>
   </div>
 </template>
 
@@ -105,7 +105,6 @@ export default class EditorComponent extends Vue.with(Props) {
   onOpeningFileName = 'New Recording...';
   onOpeningId = uuidv1();
   // mediaRecorder?: MediaRecorder;
-  audioSrc = 'aaa';
   title: 'PLAYING' | 'RECORD' = 'RECORD';
 
   mounted() {
@@ -187,7 +186,9 @@ export default class EditorComponent extends Vue.with(Props) {
         console.log('Device ready!', stream);
       }
     );
-
+    this.wavesurfer.microphone.on('deviceError', function (code) {
+      console.warn('Device error: ' + code);
+    });
     emitter.on('TAB_CHANGE', (toogle: boolean) => {
       setTimeout(() => {
         self.wavesurfer.minimap._onZoom(0);

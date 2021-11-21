@@ -162,7 +162,7 @@ export default class MainLayout extends Vue {
   updateSoundList() {
     void getSoundList().then((list) => {
       this.listSound = list as ISoundItem[];
-      console.log(this.listSound[0]);
+      // console.log(this.listSound);
     });
   }
   downloadAll() {
