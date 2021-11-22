@@ -40,9 +40,9 @@
     "eslint-plugin-vue": "^7.0.0"
   },
   "browserslist": [
-    "last 10 Chrome versions",
-    "last 10 Firefox versions",
-    "last 4 Edge versions",
+    "last 20 Chrome versions",
+    "last 20 Firefox versions",
+    "last 10 Edge versions",
     "last 7 Safari versions",
     "last 8 Android versions",
     "last 8 ChromeAndroid versions",

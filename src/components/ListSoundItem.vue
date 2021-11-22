@@ -25,7 +25,7 @@
           {{ timestampToDate(date) }}
         </div>
         <div style="display: inline-block; width: 50%; text-align: right">
-          {{ time }}
+          {{ time.slice(0, 3) }}
         </div>
       </q-item-label>
     </q-item-section>

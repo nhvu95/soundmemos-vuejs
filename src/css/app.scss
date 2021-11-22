@@ -199,6 +199,14 @@ body {
   }
 }
 
+@media only screen and (max-height: 700px) {
+  .editor-wrapper {
+    .title {
+      display: none;
+    }
+  }
+}
+
 .sound-item .q-icon:hover {
   background-color: white;
   border-radius: 20px;

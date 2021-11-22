@@ -258,6 +258,7 @@ var MicrophonePlugin = /*#__PURE__*/function () {
   }, {
     key: "connect",
     value: function connect() {
+      try{
       if (this.stream !== undefined) {
         // Create a local buffer for data to be copied to the Wavesurfer buffer for Edge
         if (this.browser.browser === 'edge') {
@@ -270,6 +271,9 @@ var MicrophonePlugin = /*#__PURE__*/function () {
         this.mediaStreamSource.connect(this.levelChecker);
         this.levelChecker.connect(this.micContext.destination);
         this.levelChecker.onaudioprocess = this.reloadBufferFunction;
+      }
+      }catch(e){
+        console.log(e);
       }
     }
     /**
@@ -301,6 +305,7 @@ var MicrophonePlugin = /*#__PURE__*/function () {
   }, {
     key: "reloadBuffer",
     value: function reloadBuffer(event) {
+      console.log(event);
       if (!this.paused) {
         // this.wavesurfer.empty();
 

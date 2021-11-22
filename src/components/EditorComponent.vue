@@ -240,6 +240,7 @@ export default class EditorComponent extends Vue.with(Props) {
     // this.wavesurfer.microphone.create();
     this.wavesurfer.stop();
     this.wavesurfer.empty();
+    this.endOfRecord = 0;
   }
   onClickPlay() {
     console.log('onClickPlay');
@@ -341,6 +342,7 @@ export default class EditorComponent extends Vue.with(Props) {
         type: 'audio/wav',
       });
     }
+    this.onClickClear();
   }
 }
 </script>
