@@ -260,6 +260,7 @@ export default class EditorComponent extends Vue.with(Props) {
       this.onOpeningId = uuidv1();
     }
     if (this.recordIcon === 'mic') {
+      this.wavesurfer.microphone.micContext.resume();
       this.wavesurfer.microphone.togglePlay();
       if (!this.audioPlaySet.has(this.onOpeningFileName)) {
         this.audioPlaySet.add(this.onOpeningFileName);
