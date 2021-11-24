@@ -4,8 +4,8 @@ import JSZip from 'jszip';
 import { ISound } from './models';
 import { saveAs } from 'file-saver';
 
-const VERSION = +(process.env.VERSION ? process.env.VERSION : '');
-
+// const VERSION = +(process.env.VERSION ? process.env.VERSION : '');
+const VERSION = 11921;
 interface ISoundMemosDB extends DBSchema {
   'sound-db': { key: string; value: ISound };
 }
