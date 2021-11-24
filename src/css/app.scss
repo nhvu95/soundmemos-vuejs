@@ -245,6 +245,10 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
+  #sound-list{
+    max-height: calc(100vh - 125px);
+    overflow-y: scroll;
+  }
   #footer-wrapper {
     display: flex;
     justify-content: center;

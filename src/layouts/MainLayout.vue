@@ -13,11 +13,7 @@
 
         <q-toolbar-title> Sound Memos </q-toolbar-title>
 
-        <a
-          target="_blank"
-          href="https://github.com/HieuNguyenVu/soundmemos-vuejs"
-          >v.{{ version }}</a
-        >
+        <a target="_blank" href="">v.{{ version }}</a>
       </q-toolbar>
     </q-header>
 
@@ -30,16 +26,16 @@
             size="md"
             unelevated
             :icon="'system_update_alt'"
-            @click="downloadAll"
+            @click="downloadAllSound"
           />
         </q-item-label>
-        <div>
+        <div id="sound-list">
           <ListSoundItem
             v-for="sound in listSound"
             :key="sound.name"
             v-bind="sound"
             @selected="selectedSoundMemos"
-            @downloadSound="downloadSound"
+            @downloadSound="downloadOneSound"
           />
         </div>
         <q-item-label footer id="footer-wrapper">
@@ -62,7 +58,7 @@
     </q-drawer>
 
     <q-page-container>
-      <router-view />
+      <editor-component active></editor-component>
     </q-page-container>
   </q-layout>
   <q-dialog v-model="confirm" persistent>
@@ -93,29 +89,35 @@
 </template>
 
 <script lang="ts">
-import ListSoundItem from 'src/components/ListSoundItem.vue';
-import { ISound } from 'src/components/models';
-import JSZip from 'jszip';
-import FileSaver from 'file-saver';
-
-import { Vue, Options } from 'vue-class-component';
-import { emitter } from '../boot/event-bus';
-import { getSound, getSoundList, deleteSound } from '../components/indexed-db';
 import { detectAnyAdblocker } from 'just-detect-adblock';
+import EditorComponent from 'src/components/EditorComponent.vue';
+import ListSoundItem from 'src/components/ListSoundItem.vue';
+import { ISound } from 'src/shared/models';
+import { Options, Vue } from 'vue-class-component';
+import { emitter } from '../boot/event-bus';
+import {
+  deleteSound,
+  downloadAll,
+  downloadOne, getSoundList
+} from '../shared/indexed-db';
+
+
 /* eslint-disable */
 
 const VERSION = +(process.env.VERSION ? process.env.VERSION : '');
-
+const SOURCE = process.env.SOURCE;
 interface ISoundItem extends Partial<ISound> {
   selected: boolean;
 }
 
 @Options({
-  components: { ListSoundItem },
+  components: { ListSoundItem, EditorComponent },
 })
 export default class MainLayout extends Vue {
   leftDrawerOpen = false;
   version = VERSION;
+  source = SOURCE;
+
   listSound: ISoundItem[] = [] as ISoundItem[];
   selectedId = '';
   confirm = false;
@@ -132,15 +134,23 @@ export default class MainLayout extends Vue {
       }
     });
   }
+  /**
+   * Check ads block
+   */
   checkAdsBlock() {
     window.location.reload();
   }
 
+  /**
+   * Close/ open the tabs
+   */
   toggleLeftDrawer() {
     this.leftDrawerOpen = !this.leftDrawerOpen;
     void emitter.emit('TAB_CHANGE', this.leftDrawerOpen);
   }
-
+  /**
+   * Select A sound to do an action
+   */
   selectedSoundMemos(id: string) {
     this.listSound.forEach((sound) => {
       if (sound.id === id) {
@@ -152,36 +162,42 @@ export default class MainLayout extends Vue {
       }
     });
   }
-  downloadSound(id: string) {
-    console.log('downloadSound', id);
-    void getSound(id).then((sound) => {
-      FileSaver.saveAs(sound.blob, `${sound.name}.wav`);
-    });
-  }
-
+  /**
+   * Update Sound list on Init/Delet/Add new
+   */
   updateSoundList() {
     void getSoundList().then((list) => {
       this.listSound = list as ISoundItem[];
       // console.log(this.listSound);
     });
   }
-  downloadAll() {
-    console.log('downloadAll');
-    void getSoundList().then((list) => {
-      const zip = new JSZip();
-      list.forEach((sound, index) => {
-        zip.file(`${index}.${sound.name}.wav`, sound.blob);
-      });
-      zip.generateAsync({ type: 'blob' }).then(function (content) {
-        FileSaver.saveAs(content, 'download.zip');
-      });
+  /**
+   * Download All Sound in DB
+   */
+  downloadAllSound() {
+    downloadAll().then(() => {
+      console.log('Download Success');
     });
   }
+  /**
+   * Download One Sound
+   */
+  downloadOneSound(id: string) {
+    downloadOne(id).then(() => {
+      console.log('Download scucess');
+    });
+  }
+  /**
+   * Delete A Sound
+   */
   deleteASound() {
     deleteSound(this.selectedId).then(() => {
       this.updateSoundList();
     });
   }
+  /**
+   * Create new Record
+   */
   createNewRecord() {
     void emitter.emit('CREATE_NEW', true);
     this.listSound.forEach((sound) => {

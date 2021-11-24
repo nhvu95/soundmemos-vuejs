@@ -6,6 +6,6 @@
     "useDefineForClassFields": true,
     "skipLibCheck": true,
     "noImplicitAny": false,
-    "allowJs": true,
+    "allowJs": true
   }
 }

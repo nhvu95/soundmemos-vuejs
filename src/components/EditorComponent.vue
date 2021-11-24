@@ -78,10 +78,10 @@
 
 <script lang="ts">
 import { Vue, prop } from 'vue-class-component';
-import { ISound, IMeta } from './models';
+import { ISound, IMeta } from '../shared/models';
 import { emitter } from '../boot/event-bus';
 import { audioBufferSlice } from 'audiobuffer-slice';
-import { getDBInstance, addSoundToDB, getSound } from './indexed-db';
+import { getDBInstance, addSoundToDB, getSound } from '../shared/indexed-db';
 /* eslint-disable */
 import { v1 as uuidv1 } from 'uuid';
 
@@ -109,7 +109,14 @@ export default class EditorComponent extends Vue.with(Props) {
 
   mounted() {
     getDBInstance();
-
+    this.initWavesurfer();
+    this.waveSurferEventHandler();
+    this.emmiterEventHandler();
+  }
+  /**
+   * Init Wavesurfer
+   */
+  initWavesurfer() {
     this.wavesurfer = WaveSurfer.create({
       container: '#waveform',
       waveColor: 'white',
@@ -159,14 +166,40 @@ export default class EditorComponent extends Vue.with(Props) {
         }),
       ],
     });
+  }
+  /**
+   * Handle event from others components
+   */
+  emmiterEventHandler() {
+    const self = this;
+    emitter.on('SELECT_SOUND', (id: string) => {
+      self.onClickClear();
+      this.title = 'PLAYING';
+      this.playButtonIcn = 'play_arrow';
+      getSound(id).then((sound) => {
+        console.log(sound);
+        self.endOfRecord = sound.time;
+        self.audioPlaySet.add(sound.id);
+        self.onOpeningFileName = sound.name;
+        self.wavesurfer.loadBlob(sound.blob);
+      });
+    });
 
+    emitter.on('CREATE_NEW', () => {
+      self.onClickClear();
+      self.title = 'RECORD';
+      self.onOpeningFileName = 'New Recording...';
+    });
+  }
+  /**
+   * Handle event Wavesurfer - call after init / reinit
+   */
+  waveSurferEventHandler() {
+    const self = this;
     /* eslint-disable */
     this.wavesurfer.on('ready', function () {
       // self.wavesurfer.play();
     });
-
-    const self = this;
-    /* eslint-disable */
     this.wavesurfer.on('audioprocess', function () {
       let currentCursor = self.wavesurfer.getCurrentTime();
       self.currentTime = self.formatTime(currentCursor);
@@ -197,25 +230,6 @@ export default class EditorComponent extends Vue.with(Props) {
         }, 100);
       }, 100);
     });
-
-    emitter.on('SELECT_SOUND', (id: string) => {
-      self.onClickClear();
-      this.title = 'PLAYING';
-      this.playButtonIcn = 'play_arrow';
-      getSound(id).then((sound) => {
-        console.log(sound);
-        self.endOfRecord = sound.time;
-        self.audioPlaySet.add(sound.id);
-        self.onOpeningFileName = sound.name;
-        self.wavesurfer.loadBlob(sound.blob);
-      });
-    });
-
-    emitter.on('CREATE_NEW', () => {
-      self.onClickClear();
-      self.title = 'RECORD';
-      self.onOpeningFileName = 'New Recording...';
-    });
   }
 
   formatTime(seconds: number) {
@@ -237,9 +251,11 @@ export default class EditorComponent extends Vue.with(Props) {
   onClickClear() {
     this.recordIcon === 'mic';
     this.wavesurfer.minimap.empty();
-    // this.wavesurfer.microphone.create();
     this.wavesurfer.stop();
     this.wavesurfer.empty();
+    this.wavesurfer.destroy();
+    this.initWavesurfer();
+    this.waveSurferEventHandler();
     this.endOfRecord = 0;
   }
   onClickPlay() {
