@@ -8,8 +8,10 @@ Some are very complex, the user needs to record first, then download => upload t
 So that why this project was born.
 
 ## What is funny??
+- I handle the sounds and store it on browser - don't use server.
 - I customized the library [wavesurfer.js](https://wavesurfer-js.org/) to handle stream data, and draw the sound wave by my way :D. Wavesuffer is not offical support this feature. So if you want to do something like this, you can refer my code.  
-- I refer the code of [recorder.js](https://github.com/mattdiamond/Recorderjs) to handle array buffer and conver array buffer to blob. Special thanks [Matt Diamond
+- I refer the code of [recorder.js](https://github.com/mattdiamond/Recorderjs) to handle array buffer and conver array buffer to blob.  
+Special thanks [Matt Diamond
 ](https://github.com/mattdiamond)
 ## Install the dependencies
 ```bash
